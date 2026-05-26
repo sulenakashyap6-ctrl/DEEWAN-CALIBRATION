@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calibration Certificate Generator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #fff;
+      --border: #dde2ea;
+      --text: #20283d;
+      --muted: #667085;
+      --accent: #111827;
+      --highlight: #16a34a;
+      --input: #f4f6fb;
+      --shadow: 0 20px 60px rgba(17, 24, 39, 0.08);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      color: var(--text);
+    }
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .topbar h1 {
+      font-size: 1.5rem;
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+    .topbar button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform .2s ease, background .2s ease;
+    }
+    .topbar button:hover { transform: translateY(-1px); background: #111827; }
+
+    .columns {
+      display: grid;
+      grid-template-columns: minmax(320px, 520px) 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+    .panel h2 {
+      margin-top: 0;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+    .section {
+      margin-bottom: 24px;
+    }
+    .section-title {
+      margin-bottom: 16px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .field-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .static-field .static-value {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--input);
+      padding: 12px 14px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      color: var(--text);
+      font-weight: 700;
+    }
+    label {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    input, textarea {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--input);
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      color: var(--text);
+      outline: none;
+    }
+    input:focus, textarea:focus {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+    }
+    textarea { resize: vertical; min-height: 90px; }
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .row-three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .2s ease, transform .2s ease;
+    }
+    .btn-primary { background: #111827; color: white; }
+    .btn-secondary { background: #f8fafc; color: #111827; border: 1px solid var(--border); }
+    .btn:hover { transform: translateY(-1px); }
+
+    .certificate {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      min-height: 850px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .certificate-header {
+      display: grid;
+      gap: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .certificate-brand {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .certificate-logo {
+      width: 110px;
+      min-width: 110px;
+      height: 110px;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+    }
+    .certificate-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .certificate-company {
+      flex: 1 1 320px;
+      display: grid;
+      gap: 6px;
+      text-align: left;
+    }
+    .certificate-company .company-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .certificate-company .company-tagline {
+      color: #0f172a;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .certificate-company .company-meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+    .certificate-title {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      margin: 0;
+      color: #0f172a;
+    }
+    .certificate-body {
+      display: grid;
+      gap: 18px;
+    }
+    .certificate-info {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px 0;
+      font-size: 0.96rem;
+      align-items: center;
+    }
+    .certificate-info div {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      align-items: center;
+      font-weight: 700;
+    }
+    .certificate-info span {
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .certificate-info strong {
+      display: block;
+      text-align: left;
+      min-width: 0;
+      font-weight: 700;
+    }
+    .certificate-section {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      background: #ffffff;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 12px 14px;
+      text-align: left;
+    }
+    th {
+      background: #eff6ff;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: 0.01em;
+    }
+    tbody tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    .detail-row td {
+      background: #f3f4f6;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .small-row td { background: #f8fafc; }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .summary-grid div {
+      background: #ecfdf5;
+      color: #065f46;
+      text-align: center;
+      padding: 14px 10px;
+      border-radius: 12px;
+      border: 1px solid #d1fae5;
+    }
+    .signature-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 40px;
+      margin-top: 24px;
+      margin-bottom: 40px;
+      align-items: flex-end;
+    }
+    .signature-block {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      text-align: center;
+      min-width: 180px;
+    }
+    .signature-line {
+      height: 2px;
+      background: #0f172a;
+      width: 35%;
+    }
+    .signature-label { color: var(--muted); font-size: 0.95rem; }
+    .sig-name { font-weight: 700; color: #0f172a; font-size: 0.95rem; }
+    .note { font-size: 0.92rem; color: var(--muted); line-height: 1.6; }
+    .certificate-footer {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 14px;
+      display: grid;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: #475569;
+    }
+    .footer-separator {
+      height: 8px;
+      background: #0b3d91;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      width: 100%;
+    }
+    .certificate-footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .certificate-footer-row div {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .certificate-footer .footer-title {
+      font-weight: 700;
+      color: #0b3d91;
+    }
+    @media (max-width: 1080px) { .columns { grid-template-columns: 1fr; } .certificate { min-height: auto; } .certificate-footer-row { flex-direction: column; align-items: flex-start; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div>
+        <h1>Calibration Certificate Generator</h1>
+        <p style="margin: 6px 0 0; color: var(--muted); font-size: 0.96rem;">Fill details and preview the certificate instantly.</p>
+      </div>
+      <button id="clearButton">New Certificate</button>
+    </div>
+
+    <div class="columns">
+      <div class="panel">
+        <div class="section">
+          <div class="section-title">Company Information</div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="companyName">Company Name</label>
+              <input id="companyName" type="text" placeholder="Enter company name" />
+            </div>
+            <div class="field">
+              <label for="companyAddress">Address</label>
+              <textarea id="companyAddress" placeholder="Enter complete address"></textarea>
+            </div>
+            <div class="field">
+              <label for="companyLogoInput">Company Logo (optional)</label>
+              <input id="companyLogoInput" type="file" accept="image/*" />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Certificate Details</div>
+          <div class="field-grid">
+            <div class="row">
+              <div class="field">
+                <label for="certificateNumber">Certificate No.</label>
+                <input id="certificateNumber" type="text" placeholder="CAL/2026/xxxxx" />
+              </div>
+              <div class="field">
+                <label for="certificateDate">Date</label>
+                <input id="certificateDate" type="date" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="calibrationDate">Calibration Date</label>
+                <input id="calibrationDate" type="date" />
+              </div>
+              <div class="field">
+                <label for="dueDate">Due Date</label>
+                <input id="dueDate" type="date" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Instrument Details</div>
+          <div class="field-grid">
+            <div class="row-three">
+              <div class="field static-field">
+                <label>Instrument</label>
+                <div class="static-value">Mag Flow Meter</div>
+              </div>
+              <div class="field static-field">
+                <label>Make</label>
+                <div class="static-value">Deewan</div>
+              </div>
+              <div class="field static-field">
+                <label>Model</label>
+                <div class="static-value">D-MAG</div>
+              </div>
+            </div>
+            <div class="row-three">
+              <div class="field">
+                <label for="serialNumber">Serial No.</label>
+                <input id="serialNumber" type="text" placeholder="Serial No." />
+              </div>
+              <div class="field">
+                <label for="lineSize">Line Size</label>
+                <input id="lineSize" type="text" placeholder="100 MM" />
+              </div>
+              <div class="field">
+                <label for="range">Range</label>
+                <input id="range" type="text" placeholder="1.41-339 M3/H" />
+              </div>
+            </div>
+            <div class="row-three">
+              <div class="field static-field">
+                <label>Fluid</label>
+                <div class="static-value">Water</div>
+              </div>
+              <div class="field">
+                <label for="remarks">Remarks</label>
+                <input id="remarks" type="text" placeholder="Optional remarks" />
+              </div>
+              <div class="field"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Measurement Inputs</div>
+          <div class="field-grid">
+            <div class="row-three">
+              <div class="field">
+                <label for="actualValue1">Actual Value 1</label>
+                <input id="actualValue1" type="number" step="any" placeholder="Actual value" />
+              </div>
+              <div class="field">
+                <label for="flowRate1">Flow Rate 1</label>
+                <input id="flowRate1" type="number" step="any" placeholder="Flow rate" />
+              </div>
+              <div class="field">
+                <label for="meterReading1">Meter Reading 1</label>
+                <input id="meterReading1" type="number" step="any" placeholder="Meter reading" />
+              </div>
+            </div>
+            <div class="row-three">
+              <div class="field">
+                <label for="actualValue2">Actual Value 2</label>
+                <input id="actualValue2" type="number" step="any" placeholder="Actual value" />
+              </div>
+              <div class="field">
+                <label for="flowRate2">Flow Rate 2</label>
+                <input id="flowRate2" type="number" step="any" placeholder="Flow rate" />
+              </div>
+              <div class="field">
+                <label for="meterReading2">Meter Reading 2</label>
+                <input id="meterReading2" type="number" step="any" placeholder="Meter reading" />
+              </div>
+            </div>
+            <div class="row-three">
+              <div class="field">
+                <label for="actualValue3">Actual Value 3</label>
+                <input id="actualValue3" type="number" step="any" placeholder="Actual value" />
+              </div>
+              <div class="field">
+                <label for="flowRate3">Flow Rate 3</label>
+                <input id="flowRate3" type="number" step="any" placeholder="Flow rate" />
+              </div>
+              <div class="field">
+                <label for="meterReading3">Meter Reading 3</label>
+                <input id="meterReading3" type="number" step="any" placeholder="Meter reading" />
+              </div>
+            </div>
+            <div class="row-three">
+              <div class="field">
+                <label for="kFactor">K Factor</label>
+                <input id="kFactor" type="number" step="any" placeholder="K factor" />
+              </div>
+              <div class="field">
+                <label for="humidity">Humidity</label>
+                <input id="humidity" type="number" step="any" placeholder="Humidity" />
+              </div>
+              <div class="field">
+                <label for="rhPercent">% RH</label>
+                <input id="rhPercent" type="number" step="any" placeholder="% RH" />
+              </div>
+            </div>
+            <div class="row-three">
+              <div class="field">
+                <label for="pressure">Pressure</label>
+                <input id="pressure" type="number" step="any" placeholder="Pressure (Bar)" />
+              </div>
+              <div class="field">
+                <label for="measurementNotes">Notes</label>
+                <input id="measurementNotes" type="text" placeholder="Optional measurement notes" />
+              </div>
+              <div class="field"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="saveButton"><i class="fas fa-save"></i> Save as PDF</button>
+          <button class="btn btn-secondary" id="downloadButton"><i class="fas fa-download"></i> Download as PDF</button>
+        </div>
+      </div>
+
+      <div class="certificate">
+        <div class="certificate-header">
+          <div class="certificate-brand">
+            <div class="certificate-logo">
+              <img src="loggo.jpeg" alt="Deewan Logo" style="width:100%; height:100%; object-fit:contain; border-radius:18px;" />
+            </div>
+            <div class="certificate-company">
+              <div class="company-title">DEEWAN EQUIPMENTS & INSTRUMENTS</div>
+              <div class="company-tagline">Empowering Flow Excellence</div>
+              <div class="company-meta">Email: sales@deewan.in | Website: www.deewanenterprises.com</div>
+            </div>
+          </div>
+          <div class="certificate-title">CALIBRATION CERTIFICATE</div>
+        </div>
+
+        <div class="certificate-body">
+          <div class="certificate-info">
+            <div><span>Customer name:</span><strong id="previewName">________________</strong></div>
+            <div><span>Address:</span><strong id="previewAddress">________________</strong></div>
+            <div><span>Due Date:</span><strong id="previewDueDate">—</strong></div>
+          </div>
+
+          <div class="certificate-section">
+            <div style="padding: 16px 20px; font-weight: 900; color: #0f172a; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">1. Calibration Details</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Certificate No.</th>
+                  <th>Date of Calibration</th>
+                  <th>Instrument</th>
+                  <th>Make</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>VOLUME</td>
+                  <td id="previewCertNo">—</td>
+                  <td id="previewCalDate">—</td>
+                  <td id="previewInstrument">—</td>
+                  <td id="previewMake">—</td>
+                </tr>
+                <tr class="detail-heading-row">
+                  <td>Model</td>
+                  <td>Serial No.</td>
+                  <td>Line Size</td>
+                  <td>Range</td>
+                  <td>Fluid</td>
+                </tr>
+                <tr class="detail-row">
+                  <td id="previewModel">—</td>
+                  <td id="previewSerial">—</td>
+                  <td id="previewLineSize">—</td>
+                  <td id="previewRange">—</td>
+                  <td id="previewFluid">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="certificate-section">
+            <div style="padding: 16px 20px; font-weight: 700;">2. Calibration Results Weighing & Measurement Method</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Test Point</th>
+                  <th>Actual Volume (kg / L)</th>
+                  <th>Flow Rate (m³)</th>
+                  <th>Meter Reading</th>
+                  <th>Error</th>
+                  <th>% Error</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="small-row">
+                  <td>1</td>
+                  <td id="previewActualValue1">0</td>
+                  <td id="previewFlowRate1">0</td>
+                  <td id="previewMeterReading1">0</td>
+                  <td id="previewError1">0</td>
+                  <td id="previewPercentError1">0</td>
+                </tr>
+                <tr class="small-row">
+                  <td>2</td>
+                  <td id="previewActualValue2">0</td>
+                  <td id="previewFlowRate2">0</td>
+                  <td id="previewMeterReading2">0</td>
+                  <td id="previewError2">0</td>
+                  <td id="previewPercentError2">0</td>
+                </tr>
+                <tr class="small-row">
+                  <td>3</td>
+                  <td id="previewActualValue3">0</td>
+                  <td id="previewFlowRate3">0</td>
+                  <td id="previewMeterReading3">0</td>
+                  <td id="previewError3">0</td>
+                  <td id="previewPercentError3">0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="summary-grid">
+            <div>Accuracy<br><strong id="previewAccuracy">0</strong></div>
+            <div>Factor<br><strong id="previewKFactor">0</strong></div>
+            <div>Humidity<br><strong id="previewHumidity">0</strong></div>
+            <div>% RH<br><strong id="previewRH">0</strong></div>
+            <div>Pressure<br><strong id="previewPressure">0 Bar</strong></div>
+          </div>
+
+          <div class="note">Certifies that the performance of the above listed instrument has been verified using standard test equipment.</div>
+
+          <div class="signature-row">
+            <div class="signature-block">
+              <div class="signature-line"></div>
+              <div class="signature-label">Calibrated By</div>
+              <div class="sig-name">Krishan Kumar</div>
+            </div>
+            <div class="signature-block">
+              <div class="signature-line"></div>
+              <div class="signature-label">Checked By</div>
+              <div class="sig-name">Sanjeev Kumar</div>
+            </div>
+          </div>
+          <div class="stamp-space" style="height:72px;"></div>
+          <div class="footer-separator"></div>
+          <div class="certificate-footer">
+            <div class="certificate-footer-row">
+              <div class="footer-title">VINAY KUMAR</div>
+              <div>1</div>
+            </div>
+            <div class="certificate-footer-row">
+              <div>Plot No 25, NH-9 Sorkhi Hansi Hisar 125033 Haryana</div>
+              <div>Mail - deewaninstrument@gmail.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    console.log('Libraries check:', {html2canvas: typeof html2canvas, jsPDF: typeof jsPDF, jspdf: typeof jspdf});
+  </script>
+  <script>
+    // Ensure jsPDF is available
+    const jsPDF = window.jspdf?.jsPDF || window.jsPDF;
+  </script>
+  <script>
+    const fields = [
+      'companyName',
+      'companyAddress',
+      'certificateNumber',
+      'certificateDate',
+      'calibrationDate',
+      'dueDate',
+      'serialNumber',
+      'lineSize',
+      'range',
+      'remarks',
+      'actualValue1',
+      'flowRate1',
+      'meterReading1',
+      'actualValue2',
+      'flowRate2',
+      'meterReading2',
+      'actualValue3',
+      'flowRate3',
+      'meterReading3',
+      'kFactor',
+      'humidity',
+      'rhPercent',
+      'pressure'
+    ];
+
+    const previewMap = {
+      companyName: 'previewName',
+      companyAddress: 'previewAddress',
+      certificateNumber: 'previewCertNo',
+      calibrationDate: 'previewCalDate',
+      dueDate: 'previewDueDate',
+      serialNumber: 'previewSerial',
+      lineSize: 'previewLineSize',
+      range: 'previewRange',
+      fluid: 'previewFluid',
+      kFactor: 'previewKFactor',
+      humidity: 'previewHumidity',
+      rhPercent: 'previewRH',
+      pressure: 'previewPressure'
+    };
+
+    function setPreviewValue(fieldId, value) {
+      const previewId = previewMap[fieldId];
+      if (!previewId) return;
+      const el = document.getElementById(previewId);
+      // Format date fields to dd-mm-yyyy for better readability
+      const isDateField = fieldId === 'calibrationDate' || fieldId === 'dueDate' || fieldId === 'certificateDate';
+      if (isDateField) {
+        const trimmed = value.trim();
+        if (!trimmed) { el.textContent = '—'; return; }
+        // input[type=date] values are yyyy-mm-dd
+        const parts = trimmed.split('-');
+        if (parts.length === 3) {
+          el.textContent = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        } else {
+          el.textContent = trimmed || '—';
+        }
+        return;
+      }
+      if (fieldId === 'pressure') {
+        el.textContent = value.trim() ? `${value.trim()} Bar` : '0 Bar';
+        return;
+      }
+      if (['kFactor', 'humidity', 'rhPercent'].includes(fieldId)) {
+        el.textContent = value.trim() || '0';
+        return;
+      }
+      el.textContent = value.trim() || '—';
+    }
+
+    // Compute due date = calibration date + 1 year - 1 day
+    function computeDueDateFromCalibration(dateStr) {
+      if (!dateStr) return '';
+      // dateStr expected yyyy-mm-dd
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return '';
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const dt = new Date(y, m, d);
+      // add 1 year
+      const newY = dt.getFullYear() + 1;
+      const newDt = new Date(newY, dt.getMonth(), dt.getDate());
+      // subtract 1 day
+      newDt.setDate(newDt.getDate() - 1);
+      const yyyy = newDt.getFullYear();
+      const mm = String(newDt.getMonth() + 1).padStart(2, '0');
+      const dd = String(newDt.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function parseFloatValue(id) {
+      const value = document.getElementById(id)?.value;
+      const parsed = parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    async function getDataUrlFromImage(src) {
+      try {
+        const response = await fetch(src);
+        if (!response.ok) {
+          console.warn('Image not found:', src);
+          return null;
+        }
+        const blob = await response.blob();
+        return await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch (err) {
+        console.warn('Image load failed:', src, err);
+        return null;
+      }
+    }
+
+    async function inlineCertificateImages(innerHTML) {
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = innerHTML;
+      const imgs = wrapper.querySelectorAll('img');
+      for (const img of imgs) {
+        if (!img.src.startsWith('data:')) {
+          img.src = await getDataUrlFromImage(img.src);
+        }
+      }
+      return wrapper.innerHTML;
+    }
+
+    async function generateCertificateHTML() {
+      const certEl = document.querySelector('.certificate');
+      const styleEl = Array.from(document.querySelectorAll('head style'))
+        .map(s => s.outerHTML).join('\n');
+
+      const certHTML = await inlineCertificateImages(certEl.outerHTML);
+
+      const printCSS = `
+        <style>
+          @page { size: A4 portrait; margin: 8mm; }
+          html, body {
+            width: 210mm;
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            -webkit-print-color-adjust: exact;
+          }
+          body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+          }
+          .certificate {
+            width: calc(210mm - 16mm);
+            max-width: 190mm;
+            box-sizing: border-box;
+            padding: 10mm;
+            margin: 0;
+            border-radius: 6px;
+            font-size: 11px;
+          }
+          .certificate-header .certificate-logo img {
+            width: 56px;
+            height: 56px;
+          }
+          .certificate-title {
+            font-size: 18px;
+            letter-spacing: 0.14em;
+          }
+          .certificate-section {
+            border-radius: 8px;
+            padding: 6px;
+          }
+          table {
+            font-size: 10.5px;
+          }
+          th, td {
+            padding: 5px 7px;
+          }
+          .summary-grid div {
+            padding: 7px 6px;
+            font-size: 10px;
+          }
+          .signature-row {
+            margin-top: 16px;
+          }
+          .certificate-footer {
+            padding-top: 6px;
+          }
+          .certificate, .certificate * {
+            page-break-inside: avoid;
+          }
+          @media print {
+            body { background: #fff; }
+            .certificate { box-shadow: none; }
+          }
+        </style>`;
+
+      return `<!doctype html><html><head><meta charset="utf-8">${styleEl}${printCSS}<title>Calibration Certificate</title></head><body>${certHTML}</body></html>`;
+    }
+
+    async function saveCertificateToDisk(defaultName = 'certificate.pdf') {
+      const { clone, wrapper } = await prepareCertificateClone();
+      const jsPdfConstructor = window.jspdf?.jsPDF || window.jsPDF;
+      if (!jsPdfConstructor) {
+        wrapper.remove();
+        throw new Error('jsPDF not available');
+      }
+      const canvas = await html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPdfConstructor({orientation: 'portrait', unit: 'mm', format: 'a4'});
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let pdfWidth = pageWidth - 16;
+      let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      if (pdfHeight > pageHeight - 16) {
+        const scale = (pageHeight - 16) / pdfHeight;
+        pdfWidth *= scale;
+        pdfHeight *= scale;
+      }
+      pdf.addImage(imgData, 'PNG', 8, 8, pdfWidth, pdfHeight);
+      const pdfBlob = pdf.output('blob');
+      wrapper.remove();
+      try {
+        if (window.showSaveFilePicker) {
+          const opts = [{
+            description: 'PDF File',
+            accept: {'application/pdf': ['.pdf']}
+          }];
+          const handle = await window.showSaveFilePicker({suggestedName: defaultName, types: opts});
+          const writable = await handle.createWritable();
+          await writable.write(pdfBlob);
+          await writable.close();
+          alert('Saved: ' + (handle.name || defaultName));
+          return;
+        }
+      } catch (err) {
+        console.warn('File System API save failed', err);
+      }
+
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = defaultName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      alert('PDF file downloaded: ' + defaultName);
+    }
+
+    async function prepareCertificateClone() {
+      const original = document.querySelector('.certificate');
+      const clone = original.cloneNode(true);
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.top = '-9999px';
+      wrapper.style.left = '-9999px';
+      wrapper.style.opacity = '0';
+      wrapper.style.pointerEvents = 'none';
+      wrapper.style.width = '210mm';
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      const imgs = clone.querySelectorAll('img');
+      for (const img of imgs) {
+        if (!img.src.startsWith('data:')) {
+          const dataUrl = await getDataUrlFromImage(img.src);
+          if (dataUrl) {
+            img.src = dataUrl;
+          } else {
+            img.style.display = 'none';
+          }
+        }
+      }
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      return { clone, wrapper };
+    }
+
+    async function createSimplePdfBlob() {
+      try {
+        const jsPdfConstructor = window.jspdf?.jsPDF || window.jsPDF;
+        if (!jsPdfConstructor) {
+          throw new Error('jsPDF not available');
+        }
+        
+        console.log('Creating simple PDF fallback...');
+        const pdf = new jsPdfConstructor({orientation: 'portrait', unit: 'mm', format: 'a4'});
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        let yPos = 10;
+        
+        // Add title
+        pdf.setFontSize(16);
+        pdf.text('CALIBRATION CERTIFICATE', pageWidth / 2, yPos, {align: 'center'});
+        yPos += 15;
+        
+        // Add some basic info
+        pdf.setFontSize(10);
+        pdf.text('Certificate Generated: ' + new Date().toLocaleDateString(), 10, yPos);
+        yPos += 15;
+        
+        pdf.text('Certificate No: ' + (document.getElementById('certificateNumber').value || 'N/A'), 10, yPos);
+        yPos += 10;
+        
+        pdf.text('Company: ' + (document.getElementById('companyName').value || 'N/A'), 10, yPos);
+        yPos += 10;
+        
+        const blob = pdf.output('blob');
+        console.log('Simple PDF created:', blob.size, 'bytes');
+        return blob;
+      } catch (error) {
+        console.error('Simple PDF creation error:', error);
+        throw error;
+      }
+    }
+
+    async function createPdfBlob(clone) {
+      try {
+        const jsPdfConstructor = window.jspdf?.jsPDF || window.jsPDF;
+        if (!jsPdfConstructor) {
+          throw new Error('jsPDF not available');
+        }
+        
+        console.log('Starting html2canvas...');
+        const canvasPromise = html2canvas(clone, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          timeout: 5000
+        });
+        
+        // Add timeout promise
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('html2canvas timeout')), 6000)
+        );
+        
+        const canvas = await Promise.race([canvasPromise, timeoutPromise]);
+        console.log('Canvas created:', canvas.width, 'x', canvas.height);
+        
+        const imgData = canvas.toDataURL('image/png');
+        console.log('Image data URL created');
+        
+        const pdf = new jsPdfConstructor({orientation: 'portrait', unit: 'mm', format: 'a4'});
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        let pdfWidth = pageWidth - 16;
+        let pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        if (pdfHeight > pageHeight - 16) {
+          const scale = (pageHeight - 16) / pdfHeight;
+          pdfWidth *= scale;
+          pdfHeight *= scale;
+        }
+        pdf.addImage(imgData, 'PNG', 8, 8, pdfWidth, pdfHeight);
+        const blob = pdf.output('blob');
+        console.log('PDF blob created:', blob.size, 'bytes');
+        return blob;
+      } catch (error) {
+        console.error('PDF creation error:', error.message);
+        console.log('Falling back to simple PDF...');
+        // Fallback to simple PDF if html2canvas fails
+        return await createSimplePdfBlob();
+      }
+    }
+
+    const fixedInstrument = 'Mag Flow Meter';
+    const fixedMake = 'Deewan';
+    const fixedModel = 'D-MAG';
+    const fixedFluid = 'Water';
+
+    function updatePreview() {
+      fields.forEach((id) => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        setPreviewValue(id, input.value);
+      });
+
+      // ensure dueDate is computed from calibrationDate when calibrationDate changes
+      const calInput = document.getElementById('calibrationDate');
+      const dueInput = document.getElementById('dueDate');
+      if (calInput && dueInput) {
+        const computed = computeDueDateFromCalibration(calInput.value || '');
+        if (computed) {
+          // only set if empty or different
+          if (!dueInput.value || dueInput.value !== computed) {
+            dueInput.value = computed;
+            setPreviewValue('dueDate', dueInput.value);
+          }
+        }
+      }
+
+      document.getElementById('previewInstrument').textContent = fixedInstrument;
+      document.getElementById('previewMake').textContent = fixedMake;
+      document.getElementById('previewModel').textContent = fixedModel;
+      document.getElementById('previewFluid').textContent = fixedFluid;
+
+      const kFactor = parseFloatValue('kFactor');
+      const humidity = parseFloatValue('humidity');
+      const rhPercent = parseFloatValue('rhPercent');
+      const pressure = parseFloatValue('pressure');
+
+      let sumAccuracy = 0;
+      const rows = [1, 2, 3];
+
+      rows.forEach((row) => {
+        const actualValue = parseFloatValue(`actualValue${row}`);
+        const flowRate = parseFloatValue(`flowRate${row}`);
+        const meterReadingInput = parseFloatValue(`meterReading${row}`);
+        const meterReading = meterReadingInput || (kFactor && flowRate ? flowRate * kFactor : 0);
+        const error = meterReading - actualValue;
+        const percentError = actualValue ? (error / actualValue) * 100 : 0;
+        const accuracy = actualValue ? Math.max(0, 100 - Math.abs(percentError)) : 0;
+
+        document.getElementById(`previewMeterReading${row}`).textContent = meterReading ? meterReading.toFixed(2) : '0';
+        document.getElementById(`previewError${row}`).textContent = error.toFixed(2);
+        document.getElementById(`previewPercentError${row}`).textContent = percentError.toFixed(2);
+        document.getElementById(`previewActualValue${row}`).textContent = actualValue ? actualValue.toFixed(2) : '0';
+        document.getElementById(`previewFlowRate${row}`).textContent = flowRate ? flowRate.toFixed(2) : '0';
+        sumAccuracy += accuracy;
+      });
+
+      const averageAccuracy = sumAccuracy / rows.length;
+      document.getElementById('previewAccuracy').textContent = averageAccuracy.toFixed(2);
+      document.getElementById('previewKFactor').textContent = kFactor ? kFactor.toFixed(2) : '0';
+      document.getElementById('previewHumidity').textContent = humidity ? humidity.toFixed(2) : '0';
+      document.getElementById('previewRH').textContent = rhPercent ? rhPercent.toFixed(2) : '0';
+      document.getElementById('previewPressure').textContent = pressure ? `${pressure.toFixed(2)} Bar` : '0 Bar';
+    }
+
+    fields.forEach((id) => {
+      const input = document.getElementById(id);
+      if (!input) return;
+      input.addEventListener('input', updatePreview);
+    });
+
+    // Also update due date immediately when calibrationDate changes
+    const calEl = document.getElementById('calibrationDate');
+    if (calEl) {
+      calEl.addEventListener('change', () => {
+        const dueEl = document.getElementById('dueDate');
+        if (!dueEl) return;
+        const computed = computeDueDateFromCalibration(calEl.value || '');
+        if (computed) {
+          dueEl.value = computed;
+        }
+        updatePreview();
+      });
+    }
+
+    document.getElementById('clearButton').addEventListener('click', () => {
+      fields.forEach((id) => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+      });
+      updatePreview();
+    });
+
+    document.getElementById('saveButton').addEventListener('click', async () => {
+      const certNo = document.getElementById('certificateNumber')?.value || 'certificate';
+      const filename = `CAL_${certNo.replace(/\s+/g, '_')}.pdf`;
+      let wrapper = null;
+      try {
+        const result = await prepareCertificateClone();
+        wrapper = result.wrapper;
+        const pdfBlob = await createPdfBlob(result.clone);
+        await saveBlobToFile(pdfBlob, filename);
+      } catch (err) {
+        console.error('Save error:', err);
+        alert('PDF save failed: ' + err.message);
+      } finally {
+        if (wrapper) wrapper.remove();
+      }
+    });
+
+    document.getElementById('downloadButton').addEventListener('click', async () => {
+      const certNo = document.getElementById('certificateNumber')?.value || 'certificate';
+      const filename = `CAL_${certNo.replace(/\s+/g, '_')}.pdf`;
+      let wrapper = null;
+      try {
+        console.log('Starting download...');
+        const result = await prepareCertificateClone();
+        wrapper = result.wrapper;
+        console.log('Clone prepared');
+        const pdfBlob = await createPdfBlob(result.clone);
+        console.log('PDF blob created, size:', pdfBlob.size);
+        await downloadBlobAsFile(pdfBlob, filename);
+        console.log('Download function called');
+      } catch (err) {
+        console.error('Download error:', err);
+        alert('PDF download failed: ' + err.message);
+      } finally {
+        if (wrapper) wrapper.remove();
+      }
+    });
+
+    async function saveBlobToFile(blob, defaultName) {
+      if (window.showSaveFilePicker) {
+        try {
+          const opts = [{ description: 'PDF file', accept: {'application/pdf': ['.pdf']} }];
+          const handle = await window.showSaveFilePicker({suggestedName: defaultName, types: opts});
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          alert('Saved: ' + (handle.name || defaultName));
+          return;
+        } catch (saveErr) {
+          console.warn('Save picker failed', saveErr);
+        }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = defaultName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function downloadBlobAsFile(blob, defaultName) {
+      try {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = defaultName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        console.log('Download initiated for:', defaultName);
+      } catch (error) {
+        console.error('Download error:', error);
+        throw error;
+      }
+    }
+
+    // Logo upload handling: read selected image as data URL and persist in localStorage
+    (function setupLogoUpload() {
+      const logoInput = document.getElementById('companyLogoInput');
+      const logoImg = document.querySelector('.certificate-logo img');
+      if (!logoImg) return;
+
+      // Load saved logo if present
+      try {
+        const saved = localStorage.getItem('companyLogoDataUrl');
+        if (saved) logoImg.src = saved;
+      } catch (e) {
+        console.warn('localStorage unavailable', e);
+      }
+
+      if (!logoInput) return;
+      logoInput.addEventListener('change', (ev) => {
+        const file = ev.target.files && ev.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try { logoImg.src = reader.result; } catch (e) { console.warn(e); }
+          try { localStorage.setItem('companyLogoDataUrl', reader.result); } catch (e) { /* ignore */ }
+        };
+        reader.readAsDataURL(file);
+      });
+    })();
+
+    updatePreview();
+    
+    console.log('Script initialized - Buttons check:', {
+      saveButton: !!document.getElementById('saveButton'),
+      downloadButton: !!document.getElementById('downloadButton')
+    });
+  </script>
+</body>
+</html>
