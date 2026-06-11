@@ -293,10 +293,11 @@
     .signature-row {
       display: flex;
       justify-content: space-between;
-      gap: 40px;
+      gap: 24px;
       margin-top: 24px;
-      margin-bottom: 40px;
+      margin-bottom: 28px;
       align-items: flex-end;
+      flex-wrap: wrap;
     }
     .signature-block {
       display: flex;
@@ -305,6 +306,7 @@
       align-items: center;
       text-align: center;
       min-width: 180px;
+      flex: 1;
     }
     .signature-line {
       height: 2px;
@@ -651,7 +653,6 @@
               <div class="sig-name">Sanjeev Kumar</div>
             </div>
           </div>
-          <div class="stamp-space" style="height:72px;"></div>
           <div class="footer-separator"></div>
           <div class="certificate-footer">
             <div class="certificate-footer-row">
@@ -1085,7 +1086,6 @@
       const rhPercent = parseFloatValue('rhPercent');
       const pressure = parseFloatValue('pressure');
 
-      let sumAccuracy = 0;
       const rows = [1, 2, 3];
 
       rows.forEach((row) => {
@@ -1093,20 +1093,17 @@
         const flowRate = parseFloatValue(`flowRate${row}`);
         const meterReadingInput = parseFloatValue(`meterReading${row}`);
         const meterReading = meterReadingInput || (kFactor && flowRate ? flowRate * kFactor : 0);
-        const error = meterReading - actualValue;
+        const error = actualValue - meterReading;
         const percentError = actualValue ? (error / actualValue) * 100 : 0;
-        const accuracy = actualValue ? Math.max(0, 100 - Math.abs(percentError)) : 0;
 
         document.getElementById(`previewMeterReading${row}`).textContent = meterReading ? meterReading.toFixed(2) : '0';
         document.getElementById(`previewError${row}`).textContent = error.toFixed(2);
         document.getElementById(`previewPercentError${row}`).textContent = percentError.toFixed(2);
         document.getElementById(`previewActualValue${row}`).textContent = actualValue ? actualValue.toFixed(2) : '0';
         document.getElementById(`previewFlowRate${row}`).textContent = flowRate ? flowRate.toFixed(2) : '0';
-        sumAccuracy += accuracy;
       });
 
-      const averageAccuracy = sumAccuracy / rows.length;
-      document.getElementById('previewAccuracy').textContent = averageAccuracy.toFixed(2);
+      document.getElementById('previewAccuracy').textContent = '±0.5%';
       document.getElementById('previewKFactor').textContent = kFactor ? kFactor.toFixed(2) : '0';
       document.getElementById('previewHumidity').textContent = humidity ? humidity.toFixed(2) : '0';
       document.getElementById('previewRH').textContent = rhPercent ? rhPercent.toFixed(2) : '0';
